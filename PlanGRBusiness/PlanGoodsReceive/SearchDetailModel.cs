@@ -125,6 +125,14 @@ namespace GRBusiness.PlanGoodsReceive
         public string matdoc { get; set; }
         public string message { get; set; }
 
+        public string product_Id { get; set; }
+
+        public string product_Name { get; set; }
+
+        public string productConversion_Name { get; set; }
+
+        public long? row_Index { get; set; }
+
 
         public List<sortViewModel> sort { get; set; }
         public List<statusViewModel> status { get; set; }

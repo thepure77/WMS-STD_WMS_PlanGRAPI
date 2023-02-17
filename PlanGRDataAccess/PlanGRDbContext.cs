@@ -53,6 +53,7 @@ namespace DataAccess
         public DbSet<im_PurchaseOrderItem_Ref> im_PurchaseOrderItem_Ref { get; set; }
         public DbSet<im_PlanGoodsReceive_Ref> im_PlanGoodsReceive_Ref { get; set; }
         public DbSet<im_PlanGoodsReceiveItem_Ref> im_PlanGoodsReceiveItem_Ref { get; set; }
+        public DbSet<View_RPT_ASN> View_RPT_ASN { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

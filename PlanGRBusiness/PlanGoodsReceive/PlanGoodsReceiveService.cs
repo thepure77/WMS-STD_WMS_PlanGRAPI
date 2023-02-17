@@ -456,7 +456,7 @@ namespace GRBusiness
         {
             try
             {
-                var query = db.IM_PlanGoodsReceive.AsQueryable();
+                var query = db.View_RPT_ASN.AsQueryable();
             
                     if (!string.IsNullOrEmpty(model.key))
                     {
@@ -526,130 +526,33 @@ namespace GRBusiness
                         query = query.Where(c => statusModels.Contains(c.Document_Status));
                     }
 
-                    if (model.sort.Count > 0)
-                    {
-                        foreach (var item in model.sort)
-                        {
-
-                            if (item.value == "PlanGoodsReceive_No")
-                            {
-                                sortModels.Add(new SortModel
-                                {
-                                    ColId = "PlanGoodsReceive_No",
-                                    Sort = "desc"
-                                });
-                            }
-                            if (item.value == "PlanGoodsReceive_Date")
-                            {
-                                sortModels.Add(new SortModel
-                                {
-                                    ColId = "PlanGoodsReceive_Date",
-                                    Sort = "desc"
-                                });
-                            }
-                            if (item.value == "DocumentType_Name")
-                            {
-                                sortModels.Add(new SortModel
-                                {
-                                    ColId = "DocumentType_Name",
-                                    Sort = "desc"
-                                });
-                            }
-                            if (item.value == "Qty")
-                            {
-                                sortModels.Add(new SortModel
-                                {
-                                    ColId = "Qty",
-                                    Sort = "desc"
-                                });
-                            }
-                            if (item.value == "Weight")
-                            {
-                                sortModels.Add(new SortModel
-                                {
-                                    ColId = "Weight",
-                                    Sort = "desc"
-                                });
-                            }
-                            if (item.value == "ProcessStatus_Name")
-                            {
-                                sortModels.Add(new SortModel
-                                {
-                                    ColId = "Document_Status",
-                                    Sort = "desc"
-                                });
-                            }
-                            if (item.value == "Vendor_name")
-                            {
-                                sortModels.Add(new SortModel
-                                {
-                                    ColId = "Vendor_name",
-                                    Sort = "desc"
-                                });
-
-                            }
-                        }
-                        query = query.KWOrderBy(sortModels);
-
-                    }
                     
-                var ProcessStatus = new List<ProcessStatusViewModel>();
-
-                var filterModel = new ProcessStatusViewModel();
-
-                filterModel.process_Index = new Guid("C2A3F847-BAA6-46FE-B502-44F2D5826A1C");
-
-                ProcessStatus = utils.SendDataApi<List<ProcessStatusViewModel>>(new AppSettingConfig().GetUrl("processStatus"), filterModel.sJson());
-
-                String Statue = "";
                 var result = new List<SearchDetailModel>();
 
                 foreach (var item in query)
                 {
                     var resultItem = new SearchDetailModel();
 
-                    var findPGRItem = db.IM_PlanGoodsReceiveItem.Where(c => c.PlanGoodsReceive_Index == item.PlanGoodsReceive_Index && c.Document_Status != -1).ToList();
-
-                    if (findPGRItem.Count > 0)
-                    {
-                        var findPO = findPGRItem.Select(s => s.Ref_Document_No).Distinct().ToList();
-
-                        resultItem.documentRef_No1 = string.Join(",", findPO.Take(3)) + (findPO.Count > 3 ? "..." : "");
-                    }
-
-                    resultItem.planGoodsReceive_Index = item.PlanGoodsReceive_Index;
+                    resultItem.row_Index = item.Row_Index;
+                    resultItem.planGoodsReceive_Index = item.PlanGoodsReceive_Index.GetValueOrDefault();
+                    resultItem.planGoodsReceive_date = item.PlanGoodsReceive_Date.GetValueOrDefault().ToString(/*"yyyy-mm-dd HH:mm:ss"*/);
                     resultItem.planGoodsReceive_No = item.PlanGoodsReceive_No;
-                    resultItem.planGoodsReceive_date = item.PlanGoodsReceive_Date.toString();
-                    resultItem.planGoodsReceive_due_date = item.PlanGoodsReceive_Due_Date.toString();
-                    resultItem.documentType_Index = item.DocumentType_Index;
-                    resultItem.documentType_Id = item.DocumentType_Id;
-                    resultItem.documentType_Name = item.DocumentType_Name;
-                    resultItem.document_Status = item.Document_Status;
-
-                    resultItem.vendor_Index = item.Vendor_Index;
-                    resultItem.vendor_Id = item.Vendor_Id;
-                    resultItem.vendor_Name = item.Vendor_Name;
-
-                    resultItem.owner_Index = item.Owner_Index;
                     resultItem.owner_Id = item.Owner_Id;
                     resultItem.owner_Name = item.Owner_Name;
-
-
-                    Statue = item.Document_Status.ToString();
-                    var ProcessStatusName = ProcessStatus.Where(c => c.processStatus_Id == Statue).FirstOrDefault();
-                    resultItem.processStatus_Name = ProcessStatusName.processStatus_Name;
-
-                    resultItem.create_By = item.Create_By;
-                    resultItem.update_By = item.Update_By;
-                    resultItem.cancel_By = item.Cancel_By;
-                    resultItem.status_SAP = item.Status_SAP;
-                    resultItem.matdoc = item.Matdoc;
-                    resultItem.message = item.Message;
+                    resultItem.vendor_Id = item.Vendor_Id;
+                    resultItem.vendor_Name = item.Vendor_Name;
+                    resultItem.documentType_Name = item.DocumentType_Name;
+                    resultItem.product_Id = item.Product_Id;
+                    resultItem.product_Name = item.Product_Name;
+                    resultItem.qty = item.Qty.GetValueOrDefault();
+                    resultItem.productConversion_Name = item.ProductConversion_Name;
+                    resultItem.document_Status = item.Document_Status;
+                    
                     result.Add(resultItem);
                 }
 
                 var actionResultPlanGR = new actionResultPlanGRViewModel();
-                actionResultPlanGR.itemsPlanGR = result.OrderByDescending(o => o.create_date).ToList();
+                actionResultPlanGR.itemsPlanGR = result.OrderBy(o => o.row_Index).ToList();
 
                 return actionResultPlanGR;
 
