@@ -201,5 +201,6 @@ namespace PlanGRDataAccess.Models
         public string Matdoc { get; set; }
         public string Message { get; set; }
         
+        public string Transaction_Id { get; set; }
     }
 }
