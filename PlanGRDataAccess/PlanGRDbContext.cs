@@ -55,6 +55,9 @@ namespace DataAccess
         public DbSet<im_PlanGoodsReceiveItem_Ref> im_PlanGoodsReceiveItem_Ref { get; set; }
         public DbSet<View_RPT_ASN> View_RPT_ASN { get; set; }
 
+        public DbSet<log_api_request> log_api_request { get; set; }
+        public DbSet<log_api_reponse> log_api_reponse { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             //if (!optionsBuilder.IsConfigured)

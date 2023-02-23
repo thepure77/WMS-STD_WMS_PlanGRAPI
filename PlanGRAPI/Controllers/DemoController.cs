@@ -38,5 +38,20 @@ namespace PlanGRAPI.Controllers
             }
         }
         #endregion
+
+        [HttpGet("Callback_TMS")]
+        public IActionResult Callback_TMS(Guid id)
+        {
+            try
+            {
+                var service = new DemoService(context);
+                var Result = service.Callback_TMS(id);
+                return Ok(Result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
     }
 }
