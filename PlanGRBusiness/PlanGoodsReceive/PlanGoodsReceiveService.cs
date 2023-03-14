@@ -4333,8 +4333,8 @@ namespace GRBusiness
                 string Date = DateTime.ParseExact(data.planGoodsReceive_Date.Substring(0, 8), "yyyyMMdd",
                 System.Globalization.CultureInfo.InvariantCulture).ToString("dd/MMM/yyyy", culture);
 
-                string Due_Date = DateTime.ParseExact(data.planGoodsReceive_Due_Date.Substring(0, 8), "yyyyMMdd",
-                System.Globalization.CultureInfo.InvariantCulture).ToString("dd/MMM/yyyy", culture);
+                //string Due_Date = DateTime.ParseExact(data.planGoodsReceive_Due_Date.Substring(0, 8), "yyyyMMdd",
+                //System.Globalization.CultureInfo.InvariantCulture).ToString("dd/MMM/yyyy", culture);
 
                 int i = 0;
 
@@ -4360,7 +4360,7 @@ namespace GRBusiness
                     resultItem.planGoodsReceive_No = item.PlanGoodsReceive_No;
                     resultItem.size = (item.UnitWidth ?? 0).ToString("#.###") + " x " + (item.UnitLength ?? 0).ToString("#.###") + " x " + (item.UnitHeight ?? 0).ToString("#.###");
                     resultItem.date = Date;
-                    resultItem.due_Date = Due_Date;
+                    resultItem.due_Date = item.PlanGoodsReceive_Due_Date.GetValueOrDefault().ToString("dd/MMM/yyyy");
                     resultItem.shelfLifeGR = item.ShelfLifeGR;
                     resultItem.ti = string.IsNullOrEmpty(item.TI) ? "0" : item.TI;
                     resultItem.hi = string.IsNullOrEmpty(item.HI) ? "0" : item.HI;
