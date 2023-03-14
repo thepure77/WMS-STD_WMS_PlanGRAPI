@@ -23,7 +23,7 @@ namespace PlanGRBusiness.Demo
         public Origin origin { get; set; }
         public Destination destination { get; set; }
         public ReturnInfo returnInfo { get; set; }
-        public List<Item> items { get; set; }
+        public List<CallBackItem> items { get; set; }
         public string api { get; set; }
     }
 
@@ -46,39 +46,41 @@ namespace PlanGRBusiness.Demo
     {
         public string name { get; set; }
         public string phone { get; set; }
+        public string email { get; set; }
         public Address address { get; set; }
     }
 
     public class Dimweight
     {
-        public int weight { get; set; }
-        public double volume { get; set; }
-        public int height { get; set; }
-        public double width { get; set; }
-        public int length { get; set; }
+        public decimal? weight { get; set; }
+        public decimal? volume { get; set; }
+        public decimal? height { get; set; }
+        public decimal? width { get; set; }
+        public decimal? length { get; set; }
     }
 
-    public class Item
+    public class CallBackItem
     {
         public string name { get; set; }
         public string sku { get; set; }
-        public int quantity { get; set; }
+        public int? quantity { get; set; }
         public ItemDW itemDW { get; set; }
     }
 
     public class ItemDW
     {
-        public int weight { get; set; }
-        public double volume { get; set; }
-        public int height { get; set; }
-        public double width { get; set; }
-        public int length { get; set; }
+        public decimal? weight { get; set; }
+        public decimal? volume { get; set; }
+        public decimal? height { get; set; }
+        public decimal? width { get; set; }
+        public decimal? length { get; set; }
     }
 
     public class Origin
     {
         public string name { get; set; }
         public string phone { get; set; }
+        public string email { get; set; }
         public Address address { get; set; }
     }
 
@@ -100,6 +102,7 @@ namespace PlanGRBusiness.Demo
     {
         public string name { get; set; }
         public string phone { get; set; }
+        public string email { get; set; }
         public Address address { get; set; }
     }
 }

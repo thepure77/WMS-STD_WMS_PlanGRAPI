@@ -1972,6 +1972,15 @@ namespace GRBusiness
                     PlanGoodsReceive.Update_By = data.update_By;
                     PlanGoodsReceive.Update_Date = DateTime.Now;
 
+                    //craete shipment TMS
+                    var service = new PlanGRBusiness.Demo.DemoService(db);
+                    var tmsresponse = service.Callback_TMS(data.planGoodsReceive_Index);
+                    if (tmsresponse != "Success")
+                    {
+                        return false;
+                    }
+                    //craete shipment TMS
+
                     var transaction = db.Database.BeginTransaction(IsolationLevel.Serializable);
                     try
                     {

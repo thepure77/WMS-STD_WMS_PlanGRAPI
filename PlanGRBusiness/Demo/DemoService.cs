@@ -3,6 +3,7 @@ using Common.Utils;
 using DataAccess;
 using GRBusiness;
 using MasterDataBusiness.ViewModels;
+using Newtonsoft.Json;
 using PlanGRBusiness.ViewModels;
 using PlanGRDataAccess.Models;
 using System;
@@ -30,11 +31,12 @@ namespace PlanGRBusiness.Demo
             var conversionList = new List<ProductConversionViewModelDoc>();
             var a = param.sJson();
             string state = "0";
+            var logindex = Guid.NewGuid();
             try
             {
+                SaveLogRequest(param.PlanGoodsReceive_No, param.sJson(), "Create ASN", 1, "", logindex);
+
                 result.order_no = param.PlanGoodsReceive_No;
-                //callback_req.referenceNo = param.PlanGoodsReceive_No;
-                //Callback_OMS(result);
                 var chkreq = CheckReq_ASN(param);
                 if (chkreq != "")
                 {
@@ -412,12 +414,18 @@ namespace PlanGRBusiness.Demo
                 db.SaveChanges();
                 result.status = 1;
                 result.message = "Success";
+
+                SaveLogResponse(param.PlanGoodsReceive_No, param.sJson(), "Create ASN", 1, "", logindex);
+
                 return result;
             }
             catch(Exception ex)
             {
                 result.status = -1;
                 result.message = ex.Message;
+
+                SaveLogResponse(param.PlanGoodsReceive_No, result.sJson(), "Create SO", -1, result.message, logindex);
+
                 return result;
             } 
         }
@@ -616,16 +624,243 @@ namespace PlanGRBusiness.Demo
             return result;
         }
 
-        public string Callback_OMS(DemoCallbackViewModel param)
+        public string SaveLogRequest(string orderno, string json, string interfacename, int status, string txt, Guid logindex)
         {
             try
             {
-                var conversionMasterResult = utils.SendDataApi<List<ProductConversionViewModelDoc>>(new AppSettingConfig().GetUrl("callback_OMS"), param.sJson());
-                return "Success";
+                log_api_request l = new log_api_request();
+                l.log_id = logindex;
+                l.log_date = DateTime.Now;
+                l.log_requestbody = json;
+                l.log_absoluteuri = "";
+                l.status = status;
+                l.Interface_Name = interfacename;
+                l.Status_Text = txt;
+                l.File_Name = orderno;
+                db.log_api_request.Add(l);
+                db.SaveChanges();
+                return "";
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+
+        }
+
+        public string SaveLogResponse(string orderno, string json, string interfacename, int status, string txt, Guid logindex)
+        {
+            try
+            {
+                bool IsNew = false;
+                log_api_reponse l = new log_api_reponse();
+                l.log_id = logindex;
+                l.log_date = DateTime.Now;
+                l.log_reponsebody = json;
+                l.log_absoluteuri = "";
+                l.status = status;
+                l.Interface_Name = interfacename;
+                l.Status_Text = txt;
+                l.File_Name = orderno;
+                db.log_api_reponse.Add(l);
+
+                var d = db.log_api_request.Find(logindex);
+                if (d == null)
+                {
+                    IsNew = true;
+                    d = new log_api_request();
+                    d.log_id = logindex;
+                    d.log_date = DateTime.Now;
+                    d.log_requestbody = "";
+                    d.log_absoluteuri = "";
+                    d.status = status;
+                    d.Interface_Name = interfacename;
+                    d.Status_Text = txt;
+                    d.File_Name = orderno;
+                }
+                d.status = status;
+                d.Status_Text = txt;
+
+                if (IsNew)
+                {
+                    db.log_api_request.Add(d);
+                }
+                else
+                {
+                }
+
+                db.SaveChanges();
+                return "";
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+
+        }
+
+        public string Callback_TMS(Guid id)
+        {
+            var logindex = Guid.NewGuid();
+            try
+            {
+                //var conversionMasterResult = utils.SendDataApi<List<ProductConversionViewModelDoc>>(new AppSettingConfig().GetUrl("callback_OMS"), param.sJson());
+
+                var data = db.IM_PlanGoodsReceive.Where(c => c.PlanGoodsReceive_Index == id).FirstOrDefault();
+                var dataItem = db.IM_PlanGoodsReceiveItem.Where(c => c.PlanGoodsReceive_Index == id && c.Document_Status != -1).ToList();
+                
+
+                var result = new DemoCallbackViewModel();
+                result.packageCode          = "BIGTHN202209160001";
+                result.packageOriginType    = "Domestic";
+                result.packageType          = "Sales_order";
+                result.firstmileTplSlug     = "thai-parcel";
+                result.trackingNumber       = data.PlanGoodsReceive_No;
+                result.tplSlug              ="thai-parcel";
+                result.tplName              = "thai-parcel";
+                result.deliveryServiceType  = "standard";
+                result.deliveryPriority     = false;
+                result.pickupType           = "Pickup";
+                result.api = "TPS_PACKAGE_CREATE";
+
+                PlatformInfo pinfo = new PlatformInfo();
+                pinfo.platformName = "BigThailand";
+                pinfo.platformOrderNumber = "BT-117D2C8E66AA";
+                pinfo.platformOrderId = "19833";
+                result.platformInfo = pinfo;
+
+                Payment pay = new Payment();
+                pay.paymentType = "NONE_COD";
+                pay.shippingType = "warehouse";
+                pay.currency= "THB";
+                result.payment = pay;
+
+                Dimweight dmweight = new Dimweight();
+                dmweight.weight = dataItem.Sum(s => s.UnitWeight);
+                dmweight.volume = dataItem.Sum(s => s.UnitVolume);
+                dmweight.height = dataItem.Sum(s => s.UnitHeight);
+                dmweight.width = dataItem.Sum(s => s.UnitWidth);
+                dmweight.length = dataItem.Sum(s => s.UnitLength);
+                result.dimweight = dmweight;
+
+                Shipper shipper = new Shipper();
+                shipper.sellerId = "20618";
+                result.shipper = shipper;
+
+                Origin origin = new Origin();
+                origin.name = "Lazada Express Limited";
+                origin.phone = "0925549954";
+                origin.email = "doppio.pois@gmail.com";
+                Address origin_detail = new Address();
+                origin_detail.country = "TH";
+                origin_detail.province = "กรุงเทพมหานคร";
+                origin_detail.city = "วัฒนา";
+                origin_detail.district = "คลองเตยเหนือ";
+                origin_detail.zipCode = "10110";
+                origin_detail.details = "Unit No.2904 – 2906, 29th Floor, Bhiraj Tower, 689 Sukhumvit Road, KlongtonNua, Wattana,";
+                origin.address = origin_detail;
+
+                result.origin = origin;
+
+                Destination destination = new Destination();
+                destination.name = "Lazada Express Limited (Collect)";
+                destination.phone = "0928767649";
+                destination.email = "ppppppp@gmail.com";
+                Address destination_detail = new Address();
+                destination_detail.country = "TH";
+                destination_detail.province = "กรุงเทพมหานคร/ Bangkok";
+                destination_detail.city = "วัฒนา";
+                destination_detail.district = "คลองเตยเหนือ";
+                destination_detail.zipCode = "10110";
+                destination_detail.details = "Lazada Express Limited (Collect)";
+                destination.address = destination_detail;
+
+                result.destination = destination;
+
+                ReturnInfo returnInfo = new ReturnInfo();
+                returnInfo.name = "Lazada Express Limited";
+                returnInfo.phone = "0925549954";
+                returnInfo.email = "doppio.pois@gmail.com";
+                Address returnInfo_detail = new Address();
+                returnInfo_detail.country = "TH";
+                returnInfo_detail.province = "กรุงเทพมหานคร";
+                returnInfo_detail.city = "วัฒนา";
+                returnInfo_detail.district = "คลองเตยเหนือ";
+                returnInfo_detail.zipCode = "10110";
+                returnInfo_detail.details = "Unit No.2904 – 2906, 29th Floor, Bhiraj Tower, 689 Sukhumvit Road, KlongtonNua, Wattana,";
+                returnInfo.address = returnInfo_detail;
+
+                result.returnInfo = returnInfo;
+
+                List<CallBackItem> cbitems = new List<CallBackItem>();
+                foreach(var i in dataItem)
+                {
+                    CallBackItem cbItem = new CallBackItem();
+                    cbItem.name = i.Product_Name;
+                    cbItem.sku = i.Product_Id;
+                    cbItem.quantity = Convert.ToInt32(i.Qty);
+
+                    ItemDW iDW = new ItemDW();
+                    iDW.weight = i.UnitWeight * 1000;
+                    if (i.UnitVolume == null)
+                    {
+                        iDW.volume = (i.UnitWidth * i.UnitLength * i.UnitHeight);
+                    }
+                    else
+                    {
+                        iDW.volume = i.UnitVolume;
+                    }
+                    iDW.height = i.UnitHeight;
+                    iDW.width = i.UnitWidth;
+                    iDW.length = i.UnitLength;
+                    cbItem.itemDW = iDW;
+
+                    cbitems.Add(cbItem);
+                }
+                result.items = cbitems;
+
+                var token = new AppSettingConfig().GetUrl("callback_Bearer");
+                var sURL = new AppSettingConfig().GetUrl("callback_TMS");
+                var JsonData = result.sJson();
+
+                SaveLogRequest(id.ToString(), JsonData, "Call TMS", 1, "", logindex);
+
+                //var conversionMasterResult = utils.SendDataApi<List<ProductConversionViewModelDoc>>(new AppSettingConfig().GetUrl("callback_OMS"), param.sJson());
+
+                using (var client = new System.Net.Http.HttpClient())
+                {
+                    client.DefaultRequestHeaders.Accept.Clear();
+                    client.Timeout = TimeSpan.FromMinutes(30);
+
+                    client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                    client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+
+                    var content = new System.Net.Http.StringContent(JsonData, Encoding.UTF8, "application/json");
+                    var callresult = client.PostAsync(sURL, content).Result;
+                    var contentResult = callresult.Content.ReadAsStringAsync().Result;
+                    //return contentResult.ToString();
+
+                    var resModel = JsonConvert.DeserializeObject<dynamic>(contentResult.ToString());
+
+                    SaveLogResponse(id.ToString(), contentResult, "Call TMS", 1, "", logindex);
+
+                    if (resModel.success != true)
+                    {
+                        return resModel.errors[0].message;
+                    }
+                    else
+                    {
+                        return "Success";
+                    }
+                }
+
+                //return "Success";
             }
             catch(Exception ex)
             {
-                return "Fail";
+                SaveLogResponse(id.ToString(), ex.Message, "Call TMS", -1, ex.Message, logindex);
+                return "Send TMS Fail";
             }
         }
     }

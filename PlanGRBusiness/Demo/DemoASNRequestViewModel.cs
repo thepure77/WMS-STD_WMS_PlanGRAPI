@@ -12,6 +12,7 @@ namespace PlanGRBusiness.Demo
         //public string Sloc_Id                    { get; set; }
         //public string start_Date                 { get; set; }
         //public string end_Date                   { get; set; }
+        public string Warehouse { get; set; }
         public string Document_Status            { get; set; }
         //public string DOC_TYP { get; set; }
         public string Creat_By { get; set; }
